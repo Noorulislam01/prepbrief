@@ -123,15 +123,39 @@ class RecoveryEmailVerifyRequest(EmailCodeRequest):
 
 
 def send_auth_code(email_address: str, code: str, purpose: str) -> None:
+    resend_api_key = os.environ.get("RESEND_API_KEY")
+    resend_from = os.environ.get("RESEND_FROM")
+    subject = f"PrepBrief {purpose} code"
+    text = f"Your PrepBrief verification code is {code}. It expires in 10 minutes. If you did not request it, ignore this email."
+
+    # Prefer the HTTPS API in production; SMTP remains available for local setups.
+    if resend_api_key:
+        if not resend_from:
+            raise HTTPException(status_code=503, detail="RESEND_FROM is missing. Configure the verified sender address in the deployment environment.")
+        try:
+            response = httpx.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {resend_api_key}"},
+                json={"from": resend_from, "to": [email_address], "subject": subject, "text": text},
+                timeout=15,
+            )
+            response.raise_for_status()
+            return
+        except httpx.HTTPStatusError as exc:
+            # Do not echo provider response bodies: they may contain addresses or account data.
+            raise HTTPException(status_code=502, detail="Email provider rejected the message. Check the Resend sender domain and API key in Render.") from exc
+        except httpx.RequestError as exc:
+            raise HTTPException(status_code=502, detail="Could not reach the email API. Check the deployment's outbound HTTPS connection.") from exc
+
     host = os.environ.get("SMTP_HOST")
     sender = os.environ.get("SMTP_FROM") or os.environ.get("SMTP_USER")
     if not host or not sender:
-        raise HTTPException(status_code=503, detail="Email is not configured. Set SMTP_HOST and SMTP_FROM in .env, then restart PrepBrief.")
+        raise HTTPException(status_code=503, detail="Email is not configured. Set RESEND_API_KEY and RESEND_FROM, or configure SMTP for local development.")
     message = EmailMessage()
-    message["Subject"] = f"PrepBrief {purpose} code"
+    message["Subject"] = subject
     message["From"] = sender
     message["To"] = email_address
-    message.set_content(f"Your PrepBrief verification code is {code}. It expires in 10 minutes. If you did not request it, ignore this email.")
+    message.set_content(text)
     port = int(os.environ.get("SMTP_PORT", "587"))
     timeout = 15
     try:

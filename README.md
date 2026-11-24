@@ -46,9 +46,10 @@ sends a short-lived one-time code to the verified account email.
 After updating an existing checkout, run `python -m db.init_db` once to migrate existing
 content to the first account and add per-user ownership and row-level database policies,
 then restart the app. For a public HTTPS deployment, set `APP_COOKIE_SECURE=true` in
-`.env`. To enable verification and reset emails, set `SMTP_HOST`, `SMTP_PORT`,
-`SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` in `.env` (the example values use Gmail
-SMTP; use an app password if your mail provider requires one). Then run
+`.env`. For production email, configure `RESEND_API_KEY` and `RESEND_FROM` in the
+hosting provider's environment settings. Verify your sending domain with Resend before
+sending verification and reset emails to users. SMTP settings remain available for
+local development. Then run
 `python -m db.init_db` once to add the email verification tables and restart the app.
 RSS items are copied into each account's feed when it signs up. CLI maintenance
 commands select the sole account automatically; once there are multiple accounts, pass
