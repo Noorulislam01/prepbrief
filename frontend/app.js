@@ -51,13 +51,16 @@ function initializeTheme() {
 
 function initializePwa() {
   if ("serviceWorker" in navigator && (location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname))) {
-    navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+    navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch(() => {});
   }
 
   const installDialog = $("#install-dialog");
   const installInstructions = $("#install-instructions");
   const installButton = $("#install-app");
   const isInstalled = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isAppleMobile = /iphone|ipad|ipod/.test(userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isEmbeddedBrowser = /instagram|fbav|fban|messenger|line\/|tiktok|snapchat/.test(userAgent);
   installButton.hidden = isInstalled();
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -72,22 +75,32 @@ function initializePwa() {
     if (deferredInstallPrompt) {
       const promptEvent = deferredInstallPrompt;
       deferredInstallPrompt = null;
-      await promptEvent.prompt();
-      const choice = await promptEvent.userChoice;
-      if (choice.outcome === "accepted") installButton.hidden = true;
-      return;
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice.outcome === "accepted") {
+          installButton.hidden = true;
+          return;
+        }
+      } catch {
+        // Fall through to browser-specific steps if the browser rejects its prompt.
+      }
     }
 
     if (isInstalled()) {
       installInstructions.textContent = "PrepBrief is already installed on this device.";
-    } else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-      installInstructions.textContent = "Tap Share, then choose Add to Home Screen.";
-    } else if (/firefox/i.test(navigator.userAgent)) {
-      installInstructions.textContent = "This browser does not offer website app installation. Open PrepBrief in Chrome, Edge, or Safari to install it.";
-    } else if (/safari/i.test(navigator.userAgent) && !/chrome|crios|android/i.test(navigator.userAgent)) {
-      installInstructions.textContent = "In Safari, choose File, then Add to Dock.";
+    } else if (isEmbeddedBrowser) {
+      installInstructions.textContent = "This page is open inside another app. Open the browser menu and choose Open in Chrome or Safari, then use that browser’s Install app or Add to Home Screen option.";
+    } else if (isAppleMobile) {
+      installInstructions.textContent = "To add PrepBrief on iPhone or iPad: tap Share in the browser toolbar, scroll the share options, then tap Add to Home Screen. Confirm by tapping Add.";
+    } else if (/android/.test(userAgent) && /firefox/.test(userAgent)) {
+      installInstructions.textContent = "Open the Firefox menu (⋮) and choose Install or Add to Home Screen. If that option is unavailable, open this page in Chrome and use its menu to install PrepBrief.";
+    } else if (/android/.test(userAgent)) {
+      installInstructions.textContent = "Open this page directly in Chrome or Samsung Internet, then open the browser menu (⋮) and choose Install app or Add to Home screen. If you opened the link inside another app, first choose Open in browser.";
+    } else if (/safari/.test(userAgent) && !/chrome|crios|android/.test(userAgent)) {
+      installInstructions.textContent = "In Safari on Mac, choose File, then Add to Dock.";
     } else {
-      installInstructions.textContent = "Open your browser menu and choose Install PrepBrief or Add to Home Screen.";
+      installInstructions.textContent = "Open the browser menu and choose Install PrepBrief or Install page. If you do not see that option, open this URL in Chrome or Edge and try again.";
     }
     installDialog.showModal();
   });
@@ -205,10 +218,22 @@ async function openReadingDesk() {
   try {
     state.taxonomy = await fetchJson("/taxonomy");
     populateTaxonomy();
+    restoreListFilters();
   } catch (error) {
     setStatus(`Couldn’t load taxonomy: ${error.message}`, true);
   }
-  await loadArticles();
+  const articleId = Number(new URLSearchParams(location.search).get("article"));
+  if (!history.state?.prepbrief) {
+    history.replaceState({ prepbrief: true, view: articleId > 0 ? "article" : "list", ...(articleId > 0 ? { articleId } : {}) }, "", location.href);
+  }
+  if (articleId > 0) {
+    listView.hidden = true;
+    readerView.hidden = false;
+    $("#reader-content").innerHTML = '<div class="empty-state"><strong>Opening article…</strong></div>';
+    await Promise.all([loadArticles(), openArticle(articleId, { pushHistory: false })]);
+  } else {
+    await loadArticles();
+  }
 }
 
 async function submitAuth(event) {
@@ -316,6 +341,35 @@ function selectedParams() {
   };
   for (const [key, value] of Object.entries(values)) if (value) params.set(key, value);
   return params;
+}
+
+function buildListUrl() {
+  const params = selectedParams();
+  params.delete("limit");
+  params.delete("offset");
+  const url = new URL(location.href);
+  url.search = params.toString();
+  url.hash = location.hash;
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function restoreListFilters() {
+  const params = new URLSearchParams(location.search);
+  if (params.has("date")) $("#date-filter").value = params.get("date");
+  $("#subject-filter").value = params.get("subject") || "";
+  updateTopics();
+  $("#topic-filter").value = params.get("topic") || "";
+  $("#must-read-filter").value = params.get("must_read") || "";
+  $("#search").value = params.get("q") || "";
+  state.selectedSection = params.get("section") || "";
+  state.listMode = params.get("saved") === "true" ? "saved" : "all";
+  updateSectionPills();
+  $("#all-tab").classList.toggle("active", state.listMode === "all");
+  $("#saved-tab").classList.toggle("active", state.listMode === "saved");
+}
+
+function replaceListUrl() {
+  history.replaceState({ prepbrief: true, view: "list" }, "", buildListUrl());
 }
 
 async function loadArticles(append = false) {
@@ -474,7 +528,12 @@ function highlightedText(article) {
   return `<div class="article-text">${result}</div>${fetchAction}${editor}`;
 }
 
-async function openArticle(id) {
+async function openArticle(id, { pushHistory = true } = {}) {
+  if (pushHistory) {
+    const url = new URL(buildListUrl(), location.origin);
+    url.searchParams.set("article", String(id));
+    history.pushState({ prepbrief: true, view: "article", articleId: Number(id), fromList: true }, "", `${url.pathname}${url.search}${url.hash}`);
+  }
   setStatus("Opening article…");
   try {
     const article = await fetchJson(`/articles/${id}`);
@@ -1051,7 +1110,14 @@ function resetFilters() {
   loadArticles();
 }
 
-function showList() {
+function showList({ fromPopState = false } = {}) {
+  if (!fromPopState && new URLSearchParams(location.search).has("article")) {
+    if (history.state?.prepbrief && history.state.view === "article" && history.state.fromList) {
+      history.back();
+      return;
+    }
+    replaceListUrl();
+  }
   $("#reference-view").hidden = true;
   $("#ask-view").hidden = true;
   $("#recovery-view").hidden = true;
@@ -1103,6 +1169,16 @@ function bindEvents() {
   $("#saved-tab").addEventListener("click", () => setListMode("saved"));
   loadMoreButton.addEventListener("click", () => loadArticles(true));
   $("#back-button").addEventListener("click", showList);
+  window.addEventListener("popstate", () => {
+    const articleId = Number(new URLSearchParams(location.search).get("article"));
+    if (Number.isInteger(articleId) && articleId > 0) {
+      openArticle(articleId, { pushHistory: false });
+    } else {
+      restoreListFilters();
+      showList({ fromPopState: true });
+      loadArticles();
+    }
+  });
   $("#logout-button").addEventListener("click", logOut);
   document.querySelectorAll(".utility-back").forEach((button) => button.addEventListener("click", showList));
   $("#open-references").addEventListener("click", () => { showUtility("reference-view"); loadReferences(); });
