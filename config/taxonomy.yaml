@@ -1,0 +1,69 @@
+# Your fixed topic list. The one-line descriptions drive tagging accuracy,
+# so make them specific. Add or edit freely, then re-run: python -m db.init_db
+subjects:
+  - name: Polity
+    topics:
+      - name: Constitution
+        description: Constitutional provisions, amendments, basic structure, fundamental rights
+      - name: Parliament
+        description: Bills, sessions, committees, parliamentary procedure
+      - name: Judiciary
+        description: Supreme Court and High Court judgements, judicial reforms
+      - name: Federalism
+        description: Centre-state relations, governors, finance commission
+      - name: Elections
+        description: Election Commission, electoral reforms, voting systems
+  - name: International Relations
+    topics:
+      - name: India-USA
+        description: Bilateral ties, trade, defence, visas, tariffs with the US
+      - name: India-Russia
+        description: Oil trade, defence deals, sanctions impact
+      - name: India-China
+        description: Border issues, trade, diplomacy
+      - name: Neighbourhood
+        description: Pakistan, Bangladesh, Nepal, Sri Lanka, Bhutan, Myanmar, Maldives
+      - name: Groupings
+        description: BRICS, G20, Quad, SCO, UN and other multilateral bodies
+  - name: Economy
+    topics:
+      - name: Tariffs & Trade
+        description: Import duties, trade deals, WTO, trade barriers
+      - name: Banking & Payments
+        description: RBI, UPI, NPAs, digital payments, financial regulation
+      - name: Agriculture
+        description: MSP, crop policy, farm reforms, food security
+      - name: Fiscal Policy
+        description: Budget, taxation, GST, deficits, public spending
+      - name: Industry & Infrastructure
+        description: Manufacturing, PLI schemes, roads, railways, energy
+  - name: Environment
+    topics:
+      - name: Climate Change
+        description: Climate negotiations, emissions, adaptation
+      - name: Biodiversity
+        description: Wildlife, protected areas, conservation laws
+  - name: Society
+    topics:
+      - name: Education
+        description: Education policy, exams, higher education
+      - name: Health
+        description: Public health, health schemes, disease outbreaks
+  - name: Social Justice
+    topics:
+      - name: Welfare Schemes
+        description: Government schemes for vulnerable groups
+      - name: Women & Children
+        description: Gender issues, child welfare, related laws
+  - name: Science & Technology
+    topics:
+      - name: Space
+        description: ISRO missions, space policy
+      - name: AI & Digital
+        description: Artificial intelligence, cyber security, data protection
+  - name: Security
+    topics:
+      - name: Internal Security
+        description: Terrorism, insurgency, border management, policing
+      - name: Defence
+        description: Armed forces, procurement, defence reforms

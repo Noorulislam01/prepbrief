@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4f0">
+  <title>PrepBrief · Current affairs, made clear</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body class="auth-required">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="PrepBrief home">
+      <span class="brand-mark">P</span>
+      <span>prepbrief<span class="brand-period">.</span></span>
+    </a>
+    <div class="topbar-note"><span class="live-dot"></span> Your daily current affairs desk</div>
+    <nav id="app-nav" class="top-links" aria-label="Tools" hidden>
+      <button id="open-references" type="button">References</button>
+      <button id="open-ask" type="button">Ask my notes</button>
+      <button id="open-recovery" type="button">Account email</button>
+      <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">API docs</a>
+      <button id="logout-button" class="logout-button" type="button">Log out</button>
+    </nav>
+    <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">API docs <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="shell">
+    <section id="auth-view" class="auth-view">
+      <div class="auth-card">
+        <p class="eyebrow">YOUR PERSONAL READING DESK</p>
+        <h1 id="auth-heading">Sign in<span class="brand-period">.</span></h1>
+        <p id="auth-description" class="intro-copy">Sign in to continue to your PrepBrief reading desk.</p>
+        <nav id="auth-mode-tabs" class="auth-mode-tabs" aria-label="Account access">
+          <button id="auth-login-tab" class="auth-mode-tab active" type="button" aria-pressed="true">Log in</button>
+          <button id="auth-signup-tab" class="auth-mode-tab" type="button" aria-pressed="false">Sign up</button>
+        </nav>
+        <form id="auth-form" class="auth-form">
+          <label id="auth-email-label" for="auth-email">Email address<input id="auth-email" name="email" type="email" autocomplete="email" maxlength="254" required></label>
+          <label id="auth-username-label" for="auth-username" hidden><span>Username <small>(optional)</small></span><input id="auth-username" name="username" autocomplete="username" minlength="3" maxlength="40"></label>
+          <label id="auth-code-label" for="auth-code" hidden>Email code<input id="auth-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{8}" maxlength="8"></label>
+          <label id="auth-password-label" for="auth-password">Password<input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="10" maxlength="256" required></label>
+          <label id="auth-confirm-password-label" for="auth-confirm-password" hidden>Confirm new password<input id="auth-confirm-password" name="confirm_password" type="password" autocomplete="new-password" minlength="10" maxlength="256"></label>
+          <p id="auth-message" role="status" aria-live="polite"></p>
+          <button id="auth-submit" class="read-action" type="submit">Sign in</button>
+        </form>
+        <p id="forgot-password-row" class="auth-footnote"><button id="forgot-password" class="text-button" type="button">Forgot password?</button></p>
+        <p id="auth-return-row" class="auth-footnote" hidden><button id="auth-return" class="text-button" type="button">Back to sign in</button></p>
+        <p id="auth-footnote" class="auth-footnote"></p>
+      </div>
+    </section>
+
+    <section id="list-view" class="list-view" hidden>
+      <div class="page-intro">
+        <div>
+          <p class="eyebrow">YOUR READING DESK</p>
+          <h1 id="page-title">Today’s brief<span class="brand-period">.</span></h1>
+          <p class="intro-copy">A quieter way to keep up with what matters.</p>
+        </div>
+        <div class="date-stamp" id="today-label"></div>
+      </div>
+
+      <section class="filter-panel" aria-label="Filter articles">
+        <label class="search-box">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <span class="sr-only">Search articles</span>
+          <input id="search" type="search" placeholder="Search headlines, summaries, text…" autocomplete="off">
+          <kbd>Ctrl K</kbd>
+        </label>
+        <div class="filter-row">
+          <label class="filter-control"><span>Date</span><input id="date-filter" type="date"></label>
+          <label class="filter-control"><span>Subject</span><select id="subject-filter"><option value="">All subjects</option></select></label>
+          <label class="filter-control"><span>Topic</span><select id="topic-filter" disabled><option value="">All topics</option></select></label>
+          <label class="filter-control"><span>Must read</span><select id="must-read-filter"><option value="">All articles</option><option value="true">Must read</option><option value="false">Other</option></select></label>
+          <button id="clear-filters" class="text-button" type="button">Clear filters</button>
+        </div>
+      </section>
+
+      <section id="day-summary" class="day-summary" aria-live="polite">
+        <div class="summary-label"><span class="summary-icon" aria-hidden="true">◷</span><span id="summary-label">TIME LEFT TODAY</span></div>
+        <strong id="time-left">— min</strong>
+        <div class="summary-progress"><div class="progress-track"><span id="progress-fill"></span></div><span id="summary-caption">Loading reading progress…</span></div>
+      </section>
+
+      <nav class="view-tabs" aria-label="Article views">
+        <button id="all-tab" class="view-tab active" type="button" aria-pressed="true">Daily feed</button>
+        <button id="saved-tab" class="view-tab" type="button" aria-pressed="false">Notebook <span id="saved-count" class="tab-count"></span></button>
+      </nav>
+
+      <nav id="section-pills" class="section-pills" aria-label="Filter articles by section">
+        <span class="section-pills-label">Browse sections</span>
+        <div class="section-pill-list">
+          <button class="section-pill active" type="button" data-section="" aria-pressed="true">All</button>
+          <button class="section-pill" type="button" data-section="Opinion" aria-pressed="false">Opinion</button>
+          <button class="section-pill" type="button" data-section="Explained" aria-pressed="false">Explained</button>
+          <button class="section-pill" type="button" data-section="India" aria-pressed="false">India</button>
+          <button class="section-pill" type="button" data-section="World" aria-pressed="false">World</button>
+          <button class="section-pill" type="button" data-section="Business" aria-pressed="false">Business</button>
+          <button class="section-pill" type="button" data-section="Technology" aria-pressed="false">Technology</button>
+          <button class="section-pill" type="button" data-section="other" aria-pressed="false">Other</button>
+        </div>
+      </nav>
+
+      <div class="results-heading">
+        <div><span class="section-kicker">IN YOUR FEED</span><h2><span id="results-title">Articles</span> <span id="result-count" class="count-pill">—</span></h2></div>
+        <span id="feed-status" class="feed-status" role="status">Loading your articles…</span>
+      </div>
+      <div id="article-list" class="article-list" aria-live="polite"></div>
+      <button id="load-more" class="load-more" type="button" hidden>Load more articles <span aria-hidden="true">↓</span></button>
+    </section>
+
+    <section id="reader-view" class="reader-view" hidden>
+      <button id="back-button" class="back-button" type="button"><span aria-hidden="true">←</span> All articles</button>
+      <div id="reader-content"></div>
+    </section>
+    <section id="reference-view" class="utility-view" hidden>
+      <button class="back-button utility-back" type="button">← Reading desk</button>
+      <div class="utility-heading"><p class="eyebrow">YOUR PERSONAL LIBRARY</p><h1>Reference desk<span class="brand-period">.</span></h1><p class="intro-copy">Build a concise, searchable collection of schemes, judgements, committees, and reports.</p></div>
+      <form id="reference-form" class="reference-form">
+        <div class="reference-form-heading"><div><span class="section-kicker">ADD A REFERENCE</span><h2 id="reference-form-title">New library entry</h2></div><button id="cancel-reference-edit" class="text-button" type="button" hidden>Cancel edit</button></div>
+        <div class="reference-fields"><label>Title<input id="reference-title" maxlength="300" required placeholder="e.g. Finance Commission recommendations"></label><label>Type<input id="reference-category" maxlength="80" required list="reference-categories" placeholder="Scheme, judgement, committee…"><datalist id="reference-categories"><option value="Scheme"><option value="Judgement"><option value="Committee"><option value="Report"><option value="Act"><option value="Concept"></datalist></label></div>
+        <label class="reference-summary-label">Your concise summary<textarea id="reference-summary" maxlength="12000" required placeholder="Write your own key facts and exam-relevant points…"></textarea></label>
+        <label class="reference-url-label">Official source link <span>Optional</span><input id="reference-url" type="url" maxlength="2000" placeholder="https://…"></label>
+        <div class="correction-tag-heading"><strong>Taxonomy tags</strong><button id="add-reference-tag" class="text-button" type="button">+ Add tag</button></div>
+        <div id="reference-tags" class="reference-tags"></div>
+        <div class="reference-form-footer"><button id="save-reference" class="read-action" type="submit">Save reference</button><span id="reference-message" role="status"></span></div>
+      </form>
+      <div class="reference-list-heading"><div><span class="section-kicker">YOUR COLLECTION</span><h2>Reference entries <span id="reference-count" class="count-pill">0</span></h2></div><input id="reference-search" type="search" placeholder="Find a reference…"></div>
+      <div id="reference-list" class="reference-list"></div>
+    </section>
+    <section id="ask-view" class="utility-view ask-view" hidden>
+      <button class="back-button utility-back" type="button">← Reading desk</button>
+      <div class="utility-heading"><p class="eyebrow">RETRIEVAL FROM YOUR STUDY MATERIAL</p><h1>Ask my notes<span class="brand-period">.</span></h1><p class="intro-copy">Get an answer grounded in your imported article passages, notes, and reference summaries.</p></div>
+      <form id="ask-form" class="ask-form"><label for="ask-question">What are you trying to recall?</label><textarea id="ask-question" maxlength="2000" required placeholder="e.g. What did I note about the Finance Commission’s role?"></textarea><div class="ask-form-footer"><span>Answers cite the passages, notes, and reference entries they use.</span><button id="ask-submit" class="read-action" type="submit">Ask Gemini →</button></div></form>
+      <div id="ask-result" class="ask-result" aria-live="polite"></div>
+    </section>
+    <section id="recovery-view" class="utility-view" hidden>
+      <button class="back-button utility-back" type="button">← Reading desk</button>
+      <div class="utility-heading"><p class="eyebrow">ACCOUNT SECURITY</p><h1>Account email<span class="brand-period">.</span></h1><p class="intro-copy">Your verified account email is also used for password recovery.</p></div>
+      <form id="recovery-email-form" class="auth-form recovery-email-form">
+        <label>New account email<input id="recovery-email" type="email" autocomplete="email" required></label>
+        <label id="recovery-code-label" hidden>Verification code<input id="recovery-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{8}" maxlength="8"></label>
+        <p id="recovery-message" role="status" aria-live="polite"></p>
+        <button id="recovery-submit" class="read-action" type="submit">Send verification code</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer"><span>PREPBRIEF</span><span>Read with intention.</span></footer>
+</body>
+</html>

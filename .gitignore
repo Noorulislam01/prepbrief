@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.venv/
+.logs/
+__pycache__/
+*.pyc
+*.db
+/data/
+.DS_Store
+Cloud.md
+cloud.md
+CLAUDE.md

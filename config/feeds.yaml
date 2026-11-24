@@ -1,0 +1,16 @@
+# RSS feeds to poll. Confirm each URL on https://indianexpress.com/rss
+# before relying on it - section feed URLs can change.
+source: The Indian Express
+feeds:
+  - name: Opinion
+    url: https://indianexpress.com/section/opinion/feed/
+  - name: Explained
+    url: https://indianexpress.com/section/explained/feed/
+  - name: India
+    url: https://indianexpress.com/section/india/feed/
+  - name: World
+    url: https://indianexpress.com/section/world/feed/
+  - name: Business
+    url: https://indianexpress.com/section/business/feed/
+  - name: Technology
+    url: https://indianexpress.com/section/technology/feed/
