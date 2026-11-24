@@ -31,7 +31,9 @@ app = FastAPI(title="PrepBrief API", version="0.1.0")
 SESSION_COOKIE = "prepbrief_session"
 SESSION_MAX_AGE = 30 * 24 * 60 * 60
 PUBLIC_PATHS = {"/", "/app.js", "/styles.css", "/auth/status", "/auth/signup", "/auth/signup/verify",
-                "/auth/password/forgot", "/auth/password/reset", "/auth/login", "/auth/logout"}
+                "/auth/password/forgot", "/auth/password/reset", "/auth/login", "/auth/logout",
+                "/manifest.webmanifest", "/service-worker.js"}
+PUBLIC_PATH_PREFIXES = ("/assets/", "/icons/")
 
 
 def token_digest(token: str) -> bytes:
@@ -52,7 +54,7 @@ def set_session_cookie(response: Response, token: str, request: Request) -> None
 
 @app.middleware("http")
 async def require_login(request: Request, call_next):
-    if request.url.path in PUBLIC_PATHS or request.url.path.startswith("/assets/"):
+    if request.url.path in PUBLIC_PATHS or request.url.path.startswith(PUBLIC_PATH_PREFIXES):
         return await call_next(request)
     token = request.cookies.get(SESSION_COOKIE)
     if not token:
