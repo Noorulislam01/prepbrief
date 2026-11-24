@@ -211,3 +211,19 @@ body.auth-required .topbar-note,body.auth-required #app-nav,body.auth-required .
 :root[data-theme="dark"] .remove-correction-tag:hover{background:#49302c;color:#f09a8d}
 :root[data-theme="dark"] .footer{border-color:var(--line);color:#89968d}
 @media(max-width:700px){:root[data-theme="dark"] .topbar #app-nav{background:#1b231e;border-color:var(--line)}}
+
+/* Bring the brand, page heading, and supporting copy into a clearer type scale. */
+.brand{font-size:18px;letter-spacing:-.35px}
+.brand-mark{width:34px;height:34px;font-size:21px}
+.page-intro .eyebrow{font-size:11px;letter-spacing:1.2px;margin-bottom:8px}
+.page-intro #page-title{font-size:clamp(42px,4.2vw,46px);line-height:1.08;letter-spacing:-.9px}
+.page-intro .intro-copy{font-size:16px;line-height:1.55;margin-top:14px}
+.page-intro .date-stamp{font-size:12px}
+@media(max-width:700px){
+  .brand{font-size:17px}
+  .brand-mark{width:32px;height:32px;font-size:20px}
+  .page-intro .eyebrow{font-size:10px}
+  .page-intro #page-title{font-size:clamp(34px,8vw,38px);line-height:1.08;letter-spacing:-.65px}
+  .page-intro .intro-copy{font-size:14px;line-height:1.5;margin-top:11px;max-width:30ch}
+  .page-intro .date-stamp{font-size:10px}
+}

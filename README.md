@@ -62,7 +62,8 @@ Run this once from PowerShell in the project folder:
 .\scripts\install_rss_task.ps1
 ```
 
-Windows Task Scheduler fetches RSS every hour while your account is signed in and the PC is awake.
+Windows Task Scheduler fetches RSS once daily at 6:00 a.m. local time while your account is signed in.
+If the PC is asleep or off at 6:00 a.m., the task runs when it next becomes available.
 Logs are written to `.logs/rss-fetch.log` (the `.logs/` folder is excluded from Git). To remove
 the task, run `Unregister-ScheduledTask -TaskName 'PrepBrief-RSS-Fetch' -Confirm:$false`.
 
