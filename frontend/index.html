@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/styles.css">
   <script src="/app.js" defer></script>
 </head>
-<body class="auth-required">
+<body class="auth-pending">
   <header class="topbar">
     <a class="brand" href="/" aria-label="PrepBrief home">
       <span class="brand-mark">P</span>
@@ -26,7 +26,11 @@
   </header>
 
   <main class="shell">
-    <section id="auth-view" class="auth-view">
+    <section id="auth-loading" class="auth-loading" role="status" aria-live="polite">
+      <span class="auth-loading-mark" aria-hidden="true"></span>
+      <p>Restoring your reading desk…</p>
+    </section>
+    <section id="auth-view" class="auth-view" hidden>
       <div class="auth-card">
         <p class="eyebrow">YOUR PERSONAL READING DESK</p>
         <h1 id="auth-heading">Sign in<span class="brand-period">.</span></h1>

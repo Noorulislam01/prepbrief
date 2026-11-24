@@ -99,7 +99,9 @@ function setAuthMode(mode) {
 }
 
 function showAuth(accountExists, message = "") {
+  document.body.classList.remove("auth-pending");
   document.body.classList.add("auth-required");
+  $("#auth-loading").hidden = true;
   $("#auth-view").hidden = false;
   listView.hidden = true;
   readerView.hidden = true;
@@ -114,6 +116,8 @@ function showAuth(accountExists, message = "") {
 }
 
 async function openReadingDesk() {
+  document.body.classList.remove("auth-pending");
+  $("#auth-loading").hidden = true;
   document.body.classList.remove("auth-required");
   $("#auth-view").hidden = true;
   listView.hidden = false;
