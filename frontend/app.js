@@ -25,6 +25,29 @@ function localDateString(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+function applyTheme(theme, persist = false) {
+  const dark = theme === "dark";
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  const toggle = $("#theme-toggle");
+  toggle.textContent = dark ? "\u2600" : "\u263e";
+  toggle.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+  toggle.setAttribute("title", dark ? "Switch to light mode" : "Switch to dark mode");
+  toggle.setAttribute("aria-pressed", String(dark));
+  document.querySelector('meta[name="theme-color"]').content = dark ? "#151916" : "#f5f4f0";
+  if (persist) {
+    try { localStorage.setItem("prepbrief_theme", dark ? "dark" : "light"); } catch { /* Storage may be disabled. */ }
+  }
+}
+
+function initializeTheme() {
+  let savedTheme = "light";
+  try { savedTheme = localStorage.getItem("prepbrief_theme") || "light"; } catch { /* Use light mode if storage is unavailable. */ }
+  applyTheme(savedTheme);
+  $("#theme-toggle").addEventListener("click", () => {
+    applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true);
+  });
+}
+
 function formatDate(value) {
   if (!value) return "DATE NOT SET";
   return new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
@@ -109,6 +132,7 @@ function showAuth(accountExists, message = "") {
   $("#ask-view").hidden = true;
   $("#recovery-view").hidden = true;
   $("#app-nav").hidden = true;
+  $("#mobile-menu-toggle").hidden = true;
   document.querySelector(".topbar-note").hidden = true;
   document.querySelectorAll(".topbar > .docs-link").forEach((link) => { link.hidden = true; });
   setAuthMode(accountExists ? "login" : "signup");
@@ -122,6 +146,7 @@ async function openReadingDesk() {
   $("#auth-view").hidden = true;
   listView.hidden = false;
   $("#app-nav").hidden = false;
+  $("#mobile-menu-toggle").hidden = false;
   document.querySelector(".topbar-note").hidden = false;
   document.querySelectorAll(".topbar > .docs-link").forEach((link) => { link.hidden = false; });
   if (!appEventsBound) {
@@ -990,6 +1015,32 @@ function showList() {
 }
 
 function bindEvents() {
+  const mobileMenu = $("#mobile-menu-toggle");
+  const appNav = $("#app-nav");
+  const closeMobileMenu = () => {
+    appNav.hidden = true;
+    mobileMenu.setAttribute("aria-expanded", "false");
+    mobileMenu.setAttribute("aria-label", "Open navigation menu");
+  };
+  const syncResponsiveNav = () => {
+    appNav.hidden = window.matchMedia("(max-width: 700px)").matches;
+    mobileMenu.setAttribute("aria-expanded", "false");
+    mobileMenu.setAttribute("aria-label", "Open navigation menu");
+  };
+  syncResponsiveNav();
+  window.addEventListener("resize", syncResponsiveNav);
+  mobileMenu.addEventListener("click", () => {
+    const isOpening = appNav.hidden;
+    appNav.hidden = !isOpening;
+    mobileMenu.setAttribute("aria-expanded", String(isOpening));
+    mobileMenu.setAttribute("aria-label", isOpening ? "Close navigation menu" : "Open navigation menu");
+  });
+  appNav.addEventListener("click", (event) => {
+    if (event.target.closest("button, a")) closeMobileMenu();
+  });
+  document.addEventListener("click", (event) => {
+    if (!appNav.hidden && !event.target.closest("#app-nav, #mobile-menu-toggle")) closeMobileMenu();
+  });
   for (const id of ["#date-filter", "#topic-filter", "#must-read-filter"]) $(id).addEventListener("change", () => loadArticles());
   $("#subject-filter").addEventListener("change", () => { updateTopics(); loadArticles(); });
   $("#search").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => loadArticles(), 300); });
@@ -1026,6 +1077,7 @@ function bindEvents() {
   });
   $("#ask-form").addEventListener("submit", askMyNotes);
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeMobileMenu();
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
       $("#search").focus();
@@ -1035,6 +1087,7 @@ function bindEvents() {
 }
 
 async function init() {
+  initializeTheme();
   $("#today-label").textContent = new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long" }).format(new Date());
   $("#date-filter").value = localDateString();
   $("#auth-form").addEventListener("submit", submitAuth);
