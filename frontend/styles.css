@@ -51,7 +51,7 @@ body.auth-required .topbar-note,body.auth-required #app-nav,body.auth-required .
 
 .auth-mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:20px 0 16px;padding:4px;background:#f3f4ef;border:1px solid #eaebe5;border-radius:8px}.auth-mode-tab{height:34px;border:1px solid transparent;border-radius:6px;background:transparent;color:#718078;font-size:11px}.auth-mode-tab:hover{color:var(--green-dark)}.auth-mode-tab.active{background:var(--white);border-color:var(--line);color:var(--green-dark);box-shadow:0 1px 3px #20362b0a;font-weight:600}.auth-form{margin-top:0}
 
-.mobile-menu-toggle{display:none}
+.topbar-actions{display:flex;align-items:center;gap:8px}.mobile-menu-toggle{display:none}
 @media(max-width:700px){
   .mobile-menu-toggle{width:38px;height:36px;padding:9px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--line);border-radius:7px;background:var(--white);color:var(--green-dark)}
   .mobile-menu-toggle span{height:2px;width:18px;background:currentColor;border-radius:2px}
