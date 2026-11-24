@@ -9,6 +9,7 @@ let searchTimer;
 let authMode = "login";
 let appEventsBound = false;
 let recoveryCodeRequested = false;
+let deferredInstallPrompt = null;
 
 function escapeHtml(value = "") {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
@@ -45,6 +46,54 @@ function initializeTheme() {
   applyTheme(savedTheme);
   $("#theme-toggle").addEventListener("click", () => {
     applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true);
+  });
+}
+
+function initializePwa() {
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname))) {
+    navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+  }
+
+  const installDialog = $("#install-dialog");
+  const installInstructions = $("#install-instructions");
+  const installButton = $("#install-app");
+  const isInstalled = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  installButton.hidden = isInstalled();
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+  });
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    installButton.hidden = true;
+  });
+
+  installButton.addEventListener("click", async () => {
+    if (deferredInstallPrompt) {
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      await promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+      if (choice.outcome === "accepted") installButton.hidden = true;
+      return;
+    }
+
+    if (isInstalled()) {
+      installInstructions.textContent = "PrepBrief is already installed on this device.";
+    } else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+      installInstructions.textContent = "Tap Share, then choose Add to Home Screen.";
+    } else if (/firefox/i.test(navigator.userAgent)) {
+      installInstructions.textContent = "This browser does not offer website app installation. Open PrepBrief in Chrome, Edge, or Safari to install it.";
+    } else if (/safari/i.test(navigator.userAgent) && !/chrome|crios|android/i.test(navigator.userAgent)) {
+      installInstructions.textContent = "In Safari, choose File, then Add to Dock.";
+    } else {
+      installInstructions.textContent = "Open your browser menu and choose Install PrepBrief or Add to Home Screen.";
+    }
+    installDialog.showModal();
+  });
+  $("#install-dialog-close").addEventListener("click", () => installDialog.close());
+  installDialog.addEventListener("click", (event) => {
+    if (event.target === installDialog) installDialog.close();
   });
 }
 
@@ -1088,6 +1137,7 @@ function bindEvents() {
 
 async function init() {
   initializeTheme();
+  initializePwa();
   $("#today-label").textContent = new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long" }).format(new Date());
   $("#date-filter").value = localDateString();
   $("#auth-form").addEventListener("submit", submitAuth);
